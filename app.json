@@ -28,6 +28,9 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "CURRENTS_KEY": "9441850330d549078f1057ed053bc231"
+    }
   }
 }

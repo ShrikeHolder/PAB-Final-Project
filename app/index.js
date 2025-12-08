@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
+// Providers
+import { NewsProvider } from "../context/newsContext";
+
 // Screens
 import Home from "./home";
 import Search from "./search";
@@ -14,7 +17,7 @@ import SearchIcon from "../assets/search.svg";
 import SavedIcon from "../assets/saved.svg";
 import ProfileIcon from "../assets/profile.svg";
 
-export default function App() {
+function AppContent() {
   const [page, setPage] = useState("home");
 
   return (
@@ -74,6 +77,14 @@ export default function App() {
         </SafeAreaView>
       </View>
     </SafeAreaProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <NewsProvider>
+      <AppContent />
+    </NewsProvider>
   );
 }
 
