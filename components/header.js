@@ -1,7 +1,9 @@
-import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, StyleSheet, Image } from "react-native";
 
 // Icon
 import MenuIcon from "../assets/burger.svg";
+
+const logo = require("../assets/icon_nusamedia.png");
 
 const Header = ({ drawer, page }) => {
   return (
@@ -9,7 +11,12 @@ const Header = ({ drawer, page }) => {
       <TouchableOpacity onPress={() => drawer.current.openDrawer()}>
         <MenuIcon width={24} height={24} />
       </TouchableOpacity>
-      <Text style={styles.pageTitle}>{formatPageName(page)}</Text>
+
+      <View style={styles.titleRow}>
+        <Image source={logo} style={styles.logo} />
+        <Text style={styles.pageTitle}>{formatPageName(page)}</Text>
+      </View>
+
       <View style={{ width: 24 }} />
     </View>
   );
@@ -43,6 +50,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#fff",
+  },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  logo: {
+    width: 36,
+    height: 36,
+    marginRight: 8,
+    resizeMode: "contain",
   },
 });
 

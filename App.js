@@ -2,6 +2,9 @@ import { useRef, useState } from "react";
 import { View, DrawerLayoutAndroid, StatusBar, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// Providers
+import { NewsProvider } from "./context/newsContext";
+
 // Components
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -10,6 +13,7 @@ import Separator from "./components/separator";
 
 // Screens
 import Home from "./screens/home";
+import Saved from "./screens/saved";
 import Wallet from "./screens/wallet";
 import Dashboard from "./screens/dashboard";
 import Calendar from "./screens/calendar";
@@ -28,6 +32,8 @@ const App = () => {
     <View style={{ padding: 30, backgroundColor: "#222222", flex: 1 }}>
       <Button text="Home" onPress={() => changePage(drawer, "home")} />
       <Separator height={30} />
+      <Button text="Saved" onPress={() => changePage(drawer, "saved")} />
+      <Separator height={30} />
       <Button text="Wallet" onPress={() => changePage(drawer, "wallet")} />
       <Separator height={30} />
       <Button
@@ -36,8 +42,6 @@ const App = () => {
       />
       <Separator height={30} />
       <Button text="Calendar" onPress={() => changePage(drawer, "calendar")} />
-      <Separator height={30} />
-      <Button text="Category" onPress={() => changePage(drawer, "category")} />
       <Separator height={30} />
       <Button text="Close" onPress={() => drawer.current.closeDrawer()} />
     </View>
@@ -48,6 +52,8 @@ const App = () => {
     switch (page) {
       case "home":
         return <Home />;
+      case "saved":
+        return <Saved />;
       case "wallet":
         return <Wallet />;
       case "dashboard":
@@ -60,19 +66,21 @@ const App = () => {
   };
 
   return (
-    <DrawerLayoutAndroid
-      ref={drawer}
-      drawerWidth={300}
-      drawerPosition="left"
-      renderNavigationView={navigationView}
-    >
-      <StatusBar style="light" backgroundColor="#AA0002" />
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <Header drawer={drawer} page={page} />
-        <View style={styles.content}>{renderPage()}</View>
-        <Footer changePage={(pageName) => setPage(pageName)} />
-      </SafeAreaView>
-    </DrawerLayoutAndroid>
+    <NewsProvider>
+      <DrawerLayoutAndroid
+        ref={drawer}
+        drawerWidth={300}
+        drawerPosition="left"
+        renderNavigationView={navigationView}
+      >
+        <StatusBar style="light" backgroundColor="#AA0002" />
+        <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+          <Header drawer={drawer} page={page} />
+          <View style={styles.content}>{renderPage()}</View>
+          <Footer changePage={(pageName) => setPage(pageName)} />
+        </SafeAreaView>
+      </DrawerLayoutAndroid>
+    </NewsProvider>
   );
 };
 
