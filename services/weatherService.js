@@ -1,7 +1,4 @@
-// services/weatherService.js - VERSION TANPA GAMBAR
 const API_KEY = "87bc1f3a8b32529cd12be0cb45f02f47";
-
-// Base URL untuk API
 const BASE_URL = "https://api.openweathermap.org/data/2.5";
 
 /**
@@ -53,60 +50,6 @@ export const getCurrentWeather = async (city) => {
 };
 
 /**
- * Get weather icon URL from OpenWeatherMap
- * @param {string} iconCode - Icon code from API
- * @returns {string} Icon URL
- */
-export const getWeatherIcon = (iconCode) => {
-  return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-};
-
-/**
- * Get emoji for weather condition
- * @param {string} condition - Weather condition
- * @returns {string} Emoji
- */
-export const getWeatherEmoji = (condition) => {
-  const emojis = {
-    Clear: "☀️",
-    Clouds: "☁️",
-    Rain: "🌧️",
-    Snow: "❄️",
-    Thunderstorm: "⛈️",
-    Drizzle: "🌦️",
-    Mist: "🌫️",
-    Fog: "🌫️",
-    Smoke: "💨",
-    Haze: "😶‍🌫️",
-    Dust: "💨",
-    Sand: "🌪️",
-    Ash: "🌋",
-    Squall: "💨",
-    Tornado: "🌪️",
-  };
-  return emojis[condition] || "🌡️";
-};
-
-/**
- * Get background color based on weather
- * @param {string} condition - Weather condition
- * @returns {string} Hex color
- */
-export const getWeatherColor = (condition) => {
-  const colors = {
-    Clear: ["#87CEEB", "#E0F7FA"], // Sky blue gradient
-    Clouds: ["#B0C4DE", "#ECEFF1"], // Light gray gradient
-    Rain: ["#4682B4", "#B3E5FC"], // Blue gradient
-    Snow: ["#F0F8FF", "#E3F2FD"], // White-blue gradient
-    Thunderstorm: ["#2F4F4F", "#546E7A"], // Dark gray gradient
-    Drizzle: ["#5F9EA0", "#80DEEA"], // Cyan gradient
-    Mist: ["#CFD8DC", "#ECEFF1"], // Light gray gradient
-  };
-  
-  return colors[condition] || ["#1a73e8", "#64B5F6"]; // Default blue gradient
-};
-
-/**
  * Get weather forecast for 5 days
  * @param {string} city - City name
  * @returns {Promise<Array|null>} Forecast data or null
@@ -123,7 +66,34 @@ export const getWeatherForecast = async (city) => {
     }
     
     const data = await response.json();
-    return data.list || [];
+    
+    // Format forecast data for UI
+    if (data.list && data.list.length > 0) {
+      const forecastDays = [];
+      const daysMap = {};
+      
+      data.list.forEach(item => {
+        const date = new Date(item.dt * 1000);
+        const dayKey = date.toLocaleDateString('id-ID', { weekday: 'short' });
+        
+        if (!daysMap[dayKey]) {
+          daysMap[dayKey] = {
+            day: dayKey,
+            temp: Math.round(item.main.temp),
+            icon: item.weather[0].icon,
+            desc: item.weather[0].description,
+            date: date.toLocaleDateString('id-ID', { 
+              day: 'numeric',
+              month: 'short'
+            })
+          };
+        }
+      });
+      
+      return Object.values(daysMap).slice(0, 5);
+    }
+    
+    return [];
     
   } catch (error) {
     console.error("Error fetching forecast:", error);
@@ -155,11 +125,39 @@ export const searchCities = async (query) => {
   }
 };
 
+/**
+ * Get weather icon URL from OpenWeatherMap
+ * @param {string} iconCode - Icon code from API
+ * @returns {string} Icon URL
+ */
+export const getWeatherIcon = (iconCode) => {
+  return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+};
+
+/**
+ * Get emoji for weather condition
+ * @param {string} condition - Weather condition
+ * @returns {string} Emoji
+ */
+export const getWeatherEmoji = (mainCondition) => {
+  const emojis = {
+    Clear: "☀️",
+    Clouds: "☁️",
+    Rain: "🌧️",
+    Snow: "❄️",
+    Thunderstorm: "⛈️",
+    Drizzle: "🌦️",
+    Mist: "🌫️",
+    Fog: "🌫️",
+    Haze: "😶‍🌫️",
+  };
+  return emojis[mainCondition] || "🌡️";
+};
+
 export default {
   getCurrentWeather,
-  getWeatherIcon,
-  getWeatherEmoji,
-  getWeatherColor,
   getWeatherForecast,
   searchCities,
+  getWeatherIcon,
+  getWeatherEmoji,
 };

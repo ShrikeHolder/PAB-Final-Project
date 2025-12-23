@@ -1,17 +1,29 @@
 // firebaseConfig.js
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Konfigurasi Firebase Anda
 const firebaseConfig = {
-  apiKey: "AIzaSyDEXAMPLE1234567890abcdef",
-  authDomain: "angin-nusantara.firebaseapp.com",
-  projectId: "angin-nusantara",
-  storageBucket: "angin-nusantara.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: "AIzaSyDQqfTb4VnmRKqn1c_lzgYNqPcLz5vSVxY",
+  authDomain: "tubespabfirman.firebaseapp.com",
+  projectId: "tubespabfirman",
+  storageBucket: "tubespabfirman.firebasestorage.app",
+  messagingSenderId: "1019895273456",
+  appId: "1:1019895273456:web:ffed9cacb190e2eb21af35",
+  measurementId: "G-WQRZNGBCQT"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Initialize Auth dengan AsyncStorage untuk persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage)
+});
+
+// Initialize Firestore
+const db = getFirestore(app);
+
+export { app, auth, db };
