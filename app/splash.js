@@ -1,57 +1,92 @@
-// app/splash.js
-import { useEffect } from "react";
-import { View, Image, StyleSheet, Text } from "react-native";
-import { router } from "expo-router";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function Splash() {
+export default function SplashScreen({ navigation }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          router.replace("/(main)/home");
-        } else {
-          router.replace("/(auth)/login");
-        }
-      });
+      navigation.replace('Login');
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [navigation]);
 
   return (
-    <View style={styles.container}>
-      <Image 
-        source={require('../assets/logo.png')} 
-        style={styles.logo}
-      />
-      <Text style={styles.title}>Angin Nusantara</Text>
-      <Text style={styles.subtitle}>Aplikasi Cuaca Indonesia</Text>
-    </View>
+    <LinearGradient
+      colors={['#2196F3', '#1976D2']}
+      style={styles.container}
+    >
+      <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+      
+      <View style={styles.logoContainer}>
+        <View style={styles.logoCircle}>
+          <Text style={styles.logoIcon}>🌤️</Text>
+        </View>
+      </View>
+      
+      <View style={styles.textContainer}>
+        <Text style={styles.appName}>ANGIN NUSANTARA</Text>
+        <Text style={styles.tagline}>Prakiraan Cuaca Indonesia</Text>
+      </View>
+      
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>Memuat aplikasi...</Text>
+      </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#1a73e8",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
   },
-  title: {
+  logoCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  logoIcon: {
+    fontSize: 60,
+  },
+  textContainer: {
+    alignItems: 'center',
+  },
+  appName: {
     fontSize: 32,
-    fontWeight: "bold",
-    color: "white",
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    letterSpacing: 2,
     marginBottom: 10,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
-  subtitle: {
-    fontSize: 18,
-    color: "rgba(255,255,255,0.9)",
+  tagline: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.9)',
+    letterSpacing: 1,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    bottom: 60,
+  },
+  loadingText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    opacity: 0.8,
   },
 });
