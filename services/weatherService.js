@@ -9,22 +9,24 @@ const BASE_URL = "https://api.openweathermap.org/data/2.5";
 export const getCurrentWeather = async (city) => {
   try {
     const response = await fetch(
-      `${BASE_URL}/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=id`
+      `${BASE_URL}/weather?q=${encodeURIComponent(
+        city
+      )}&appid=${API_KEY}&units=metric&lang=id`
     );
-    
+
     if (!response.ok) {
       console.error(`API Error: ${response.status}`);
       return null;
     }
-    
+
     const data = await response.json();
-    
+
     // Validasi data
     if (data.cod !== 200) {
       console.error("Weather API Error:", data.message);
       return null;
     }
-    
+
     return {
       ...data,
       formatted: {
@@ -40,9 +42,8 @@ export const getCurrentWeather = async (city) => {
           hour: "2-digit",
           minute: "2-digit",
         }),
-      }
+      },
     };
-    
   } catch (error) {
     console.error("Error fetching weather:", error);
     return null;
@@ -57,47 +58,39 @@ export const getCurrentWeather = async (city) => {
 export const getWeatherForecast = async (city) => {
   try {
     const response = await fetch(
-      `${BASE_URL}/forecast?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=id&cnt=5`
+      `${BASE_URL}/forecast?q=${encodeURIComponent(
+        city
+      )}&appid=${API_KEY}&units=metric&lang=id`
     );
-    
+
     if (!response.ok) {
       console.error(`Forecast API Error: ${response.status}`);
-      return null;
+      return [];
     }
-    
+
     const data = await response.json();
-    
-    // Format forecast data for UI
-    if (data.list && data.list.length > 0) {
-      const forecastDays = [];
-      const daysMap = {};
-      
-      data.list.forEach(item => {
-        const date = new Date(item.dt * 1000);
-        const dayKey = date.toLocaleDateString('id-ID', { weekday: 'short' });
-        
-        if (!daysMap[dayKey]) {
-          daysMap[dayKey] = {
-            day: dayKey,
-            temp: Math.round(item.main.temp),
-            icon: item.weather[0].icon,
-            desc: item.weather[0].description,
-            date: date.toLocaleDateString('id-ID', { 
-              day: 'numeric',
-              month: 'short'
-            })
-          };
-        }
-      });
-      
-      return Object.values(daysMap).slice(0, 5);
-    }
-    
-    return [];
-    
+
+    // Ambil data jam 12:00 tiap hari
+    const dailyForecast = data.list.filter((item) =>
+      item.dt_txt.includes("12:00:00")
+    );
+
+    return dailyForecast.slice(0, 5).map((item) => {
+      const date = new Date(item.dt * 1000);
+      return {
+        day: date.toLocaleDateString("id-ID", { weekday: "short" }),
+        date: date.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+        }),
+        temp: Math.round(item.main.temp),
+        desc: item.weather[0].description,
+        icon: item.weather[0].icon,
+      };
+    });
   } catch (error) {
     console.error("Error fetching forecast:", error);
-    return null;
+    return [];
   }
 };
 
@@ -109,16 +102,17 @@ export const getWeatherForecast = async (city) => {
 export const searchCities = async (query) => {
   try {
     const response = await fetch(
-      `${BASE_URL}/find?q=${encodeURIComponent(query)}&appid=${API_KEY}&type=like&sort=population&cnt=5`
+      `${BASE_URL}/find?q=${encodeURIComponent(
+        query
+      )}&appid=${API_KEY}&type=like&sort=population&cnt=5`
     );
-    
+
     if (!response.ok) {
       return [];
     }
-    
+
     const data = await response.json();
     return data.list || [];
-    
   } catch (error) {
     console.error("Error searching cities:", error);
     return [];

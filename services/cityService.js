@@ -1,5 +1,5 @@
 // services/cityService.js
-import { 
+import {
   collection,
   addDoc,
   getDocs,
@@ -10,11 +10,11 @@ import {
   orderBy,
   updateDoc,
   getDoc,
-  Timestamp
-} from 'firebase/firestore';
-import { db, auth } from '../firebaseConfig';
-import { getCurrentWeather } from './weatherService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  Timestamp,
+} from "firebase/firestore";
+import { db, auth } from "../firebaseConfig";
+import { getCurrentWeather } from "./weatherService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Tambah kota ke daftar tersimpan user
@@ -23,7 +23,7 @@ export const saveCity = async (cityName) => {
   try {
     const user = auth.currentUser;
     if (!user) {
-      throw new Error('User belum login');
+      throw new Error("User belum login");
     }
 
     // Format city name untuk query
@@ -32,17 +32,17 @@ export const saveCity = async (cityName) => {
     // Cek apakah kota sudah ada di daftar user
     const existingCity = await getCityByName(user.uid, formattedCityName);
     if (existingCity) {
-      throw new Error('Kota sudah ada di daftar tersimpan');
+      throw new Error("Kota sudah ada di daftar tersimpan");
     }
 
     // Ambil data cuaca kota
     const weatherData = await getCurrentWeather(formattedCityName);
     if (!weatherData) {
-      throw new Error('Gagal mendapatkan data cuaca kota');
+      throw new Error("Gagal mendapatkan data cuaca kota");
     }
 
     // Simpan ke Firestore
-    const cityRef = collection(db, 'savedCities');
+    const cityRef = collection(db, "savedCities");
     const docRef = await addDoc(cityRef, {
       userId: user.uid,
       cityName: formattedCityName,
@@ -51,11 +51,11 @@ export const saveCity = async (cityName) => {
         temperature: Math.round(weatherData.main.temp),
         description: weatherData.weather[0].description,
         humidity: weatherData.main.humidity,
-        windSpeed: weatherData.wind.speed.toFixed(1),
-        icon: weatherData.weather[0].icon
+        windSpeed: Number(weatherData.wind.speed.toFixed(1)),
+        icon: weatherData.weather[0].icon,
       },
       createdAt: Timestamp.now(),
-      lastUpdated: Timestamp.now()
+      lastUpdated: Timestamp.now(),
     });
 
     // Update cache
@@ -71,12 +71,12 @@ export const saveCity = async (cityName) => {
         temperature: Math.round(weatherData.main.temp),
         description: weatherData.weather[0].description,
         humidity: weatherData.main.humidity,
-        windSpeed: weatherData.wind.speed.toFixed(1),
-        icon: weatherData.weather[0].icon
-      }
+        windSpeed: Number(weatherData.wind.speed.toFixed(1)),
+        icon: weatherData.weather[0].icon,
+      },
     };
   } catch (error) {
-    console.error('Error saving city:', error);
+    console.error("Error saving city:", error);
     throw error;
   }
 };
@@ -88,7 +88,7 @@ export const getSavedCities = async () => {
   try {
     const user = auth.currentUser;
     if (!user) {
-      return { success: false, error: 'User belum login', cities: [] };
+      return { success: false, error: "User belum login", cities: [] };
     }
 
     // Coba ambil dari cache dulu
@@ -98,11 +98,11 @@ export const getSavedCities = async () => {
     }
 
     // Ambil dari Firestore
-    const citiesRef = collection(db, 'savedCities');
+    const citiesRef = collection(db, "savedCities");
     const q = query(
       citiesRef,
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -120,7 +120,7 @@ export const getSavedCities = async () => {
         windSpeed: data.weatherData?.windSpeed,
         icon: data.weatherData?.icon,
         createdAt: data.createdAt?.toDate(),
-        lastUpdated: data.lastUpdated?.toDate()
+        lastUpdated: data.lastUpdated?.toDate(),
       });
     });
 
@@ -129,8 +129,8 @@ export const getSavedCities = async () => {
 
     return { success: true, cities };
   } catch (error) {
-    console.error('Error getting cities:', error);
-    
+    console.error("Error getting cities:", error);
+
     // Fallback ke cache jika ada
     try {
       const user = auth.currentUser;
@@ -139,9 +139,9 @@ export const getSavedCities = async () => {
         return { success: true, cities: cachedCities, fromCache: true };
       }
     } catch (cacheError) {
-      console.error('Cache error:', cacheError);
+      console.error("Cache error:", cacheError);
     }
-    
+
     return { success: false, error: error.message, cities: [] };
   }
 };
@@ -153,30 +153,30 @@ export const deleteCity = async (cityId) => {
   try {
     const user = auth.currentUser;
     if (!user) {
-      throw new Error('User belum login');
+      throw new Error("User belum login");
     }
 
     // Verifikasi bahwa kota milik user ini
-    const cityRef = doc(db, 'savedCities', cityId);
+    const cityRef = doc(db, "savedCities", cityId);
     const cityDoc = await getDoc(cityRef);
-    
+
     if (!cityDoc.exists()) {
-      throw new Error('Kota tidak ditemukan');
+      throw new Error("Kota tidak ditemukan");
     }
 
     const cityData = cityDoc.data();
     if (cityData.userId !== user.uid) {
-      throw new Error('Anda tidak memiliki izin');
+      throw new Error("Anda tidak memiliki izin");
     }
 
     await deleteDoc(cityRef);
-    
+
     // Update cache
     await updateCitiesCache(user.uid);
-    
+
     return { success: true };
   } catch (error) {
-    console.error('Error deleting city:', error);
+    console.error("Error deleting city:", error);
     throw error;
   }
 };
@@ -186,18 +186,18 @@ export const deleteCity = async (cityId) => {
  */
 export const updateCityWeather = async (cityId) => {
   try {
-    const cityRef = doc(db, 'savedCities', cityId);
+    const cityRef = doc(db, "savedCities", cityId);
     const cityDoc = await getDoc(cityRef);
-    
+
     if (!cityDoc.exists()) {
-      throw new Error('Kota tidak ditemukan');
+      throw new Error("Kota tidak ditemukan");
     }
 
     const data = cityDoc.data();
     const weatherData = await getCurrentWeather(data.cityName);
-    
+
     if (!weatherData) {
-      throw new Error('Gagal memperbarui data cuaca');
+      throw new Error("Gagal memperbarui data cuaca");
     }
 
     await updateDoc(cityRef, {
@@ -205,10 +205,10 @@ export const updateCityWeather = async (cityId) => {
         temperature: Math.round(weatherData.main.temp),
         description: weatherData.weather[0].description,
         humidity: weatherData.main.humidity,
-        windSpeed: weatherData.wind.speed.toFixed(1),
-        icon: weatherData.weather[0].icon
+        windSpeed: Number(weatherData.wind.speed.toFixed(1)),
+        icon: weatherData.weather[0].icon,
       },
-      lastUpdated: Timestamp.now()
+      lastUpdated: Timestamp.now(),
     });
 
     // Update cache
@@ -223,12 +223,12 @@ export const updateCityWeather = async (cityId) => {
         temperature: Math.round(weatherData.main.temp),
         description: weatherData.weather[0].description,
         humidity: weatherData.main.humidity,
-        windSpeed: weatherData.wind.speed.toFixed(1),
-        icon: weatherData.weather[0].icon
-      }
+        windSpeed: Number(weatherData.wind.speed.toFixed(1)),
+        icon: weatherData.weather[0].icon,
+      },
     };
   } catch (error) {
-    console.error('Error updating city weather:', error);
+    console.error("Error updating city weather:", error);
     throw error;
   }
 };
@@ -238,11 +238,11 @@ export const updateCityWeather = async (cityId) => {
  */
 const getCityByName = async (userId, cityName) => {
   try {
-    const citiesRef = collection(db, 'savedCities');
+    const citiesRef = collection(db, "savedCities");
     const q = query(
       citiesRef,
-      where('userId', '==', userId),
-      where('cityName', '==', cityName)
+      where("userId", "==", userId),
+      where("cityName", "==", cityName)
     );
 
     const querySnapshot = await getDocs(q);
@@ -250,12 +250,12 @@ const getCityByName = async (userId, cityName) => {
       const doc = querySnapshot.docs[0];
       return {
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       };
     }
     return null;
   } catch (error) {
-    console.error('Error checking city:', error);
+    console.error("Error checking city:", error);
     return null;
   }
 };
@@ -265,18 +265,18 @@ const getCachedCities = async (userId) => {
     const cached = await AsyncStorage.getItem(`cities_${userId}`);
     return cached ? JSON.parse(cached) : [];
   } catch (error) {
-    console.error('Error getting cached cities:', error);
+    console.error("Error getting cached cities:", error);
     return [];
   }
 };
 
 const updateCitiesCache = async (userId) => {
   try {
-    const citiesRef = collection(db, 'savedCities');
+    const citiesRef = collection(db, "savedCities");
     const q = query(
       citiesRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc")
     );
 
     const querySnapshot = await getDocs(q);
@@ -294,12 +294,31 @@ const updateCitiesCache = async (userId) => {
         windSpeed: data.weatherData?.windSpeed,
         icon: data.weatherData?.icon,
         createdAt: data.createdAt?.toDate(),
-        lastUpdated: data.lastUpdated?.toDate()
+        lastUpdated: data.lastUpdated?.toDate(),
       });
     });
 
     await AsyncStorage.setItem(`cities_${userId}`, JSON.stringify(cities));
   } catch (error) {
-    console.error('Error updating cache:', error);
+    console.error("Error updating cache:", error);
+  }
+};
+
+/**
+ * Hitung total kota tersimpan user
+ */
+export const getSavedCitiesCount = async () => {
+  try {
+    const user = auth.currentUser;
+    if (!user) return 0;
+
+    const citiesRef = collection(db, "savedCities");
+    const q = query(citiesRef, where("userId", "==", user.uid));
+    const snapshot = await getDocs(q);
+
+    return snapshot.size; //ini untuk hitung jumlah dokumen
+  } catch (error) {
+    console.error("getSavedCitiesCount error:", error);
+    return 0;
   }
 };
