@@ -1,5 +1,5 @@
 // app/profile.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,48 +7,73 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  Alert
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { logoutUser } from '../services/authService';
+  Alert,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 
-// User profile data
-const userData = {
-  name: 'Ahmad Rizki',
-  email: 'ahmad.rizki@email.com',
-  joinDate: '15 Maret 2024',
-  memberLevel: 'Premium',
-  totalSavedCities: 12,
-};
+// Services
+import { logoutUser } from "../services/authService";
+import { getCurrentUserProfile } from "../services/authService";
+import { getSavedCitiesCount } from "../services/cityService";
 
 export default function ProfileScreen() {
+  const [userData, setUserData] = useState(null);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
+  const [totalSavedCities, setTotalSavedCities] = useState(0);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const profile = await getCurrentUserProfile();
+      setUserData(profile);
+
+      const count = await getSavedCitiesCount();
+      setTotalSavedCities(count);
+    };
+
+    loadProfile();
+  }, []);
+
+  // Load Guard atau kata lain biar Aman kalau terjadi Error
+  if (!userData) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center", marginTop: 50 }}>
+          Memuat profil...
+        </Text>
+      </View>
+    );
+  }
+
+  const formattedJoinDate = new Date(userData.joinDate).toLocaleDateString(
+    "id-ID",
+    { day: "numeric", month: "long", year: "numeric" }
+  );
 
   const handleLogout = async () => {
     Alert.alert(
-      'Konfirmasi Keluar',
-      'Apakah Anda yakin ingin keluar dari aplikasi?',
+      "Konfirmasi Keluar",
+      "Apakah Anda yakin ingin keluar dari aplikasi?",
       [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Keluar', 
-          style: 'destructive',
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Keluar",
+          style: "destructive",
           onPress: async () => {
             try {
               const result = await logoutUser();
               if (result.success) {
-                router.replace('/login');
-                Alert.alert('Berhasil', 'Anda telah keluar dari aplikasi');
+                router.replace("/login");
+                Alert.alert("Berhasil", "Anda telah keluar dari aplikasi");
               } else {
-                Alert.alert('Error', result.error);
+                Alert.alert("Error", result.error);
               }
             } catch (error) {
-              Alert.alert('Error', 'Gagal keluar dari aplikasi');
+              Alert.alert("Error", "Gagal keluar dari aplikasi");
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -57,27 +82,27 @@ export default function ProfileScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
       <LinearGradient
-        colors={['#2196F3', '#1976D2']}
+        colors={["#2196F3", "#1976D2"]}
         style={styles.profileHeader}
       >
-        <TouchableOpacity 
+        {/* <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
         >
           <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.profileInfo}>
           <View style={styles.avatarContainer}>
             <LinearGradient
-              colors={['#FFFFFF', '#E3F2FD']}
+              colors={["#FFFFFF", "#E3F2FD"]}
               style={styles.avatar}
             >
               <Text style={styles.avatarText}>AR</Text>
             </LinearGradient>
           </View>
-          
-          <Text style={styles.userName}>{userData.name}</Text>
+
+          <Text style={styles.userName}>{userData.displayName}</Text>
           <Text style={styles.userEmail}>{userData.email}</Text>
         </View>
       </LinearGradient>
@@ -86,19 +111,13 @@ export default function ProfileScreen() {
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
           <Text style={styles.statIcon}>🏙️</Text>
-          <Text style={styles.statValue}>{userData.totalSavedCities}</Text>
+          <Text style={styles.statValue}>{totalSavedCities}</Text>
           <Text style={styles.statLabel}>Kota Tersimpan</Text>
         </View>
-        
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>⭐</Text>
-          <Text style={styles.statValue}>{userData.memberLevel}</Text>
-          <Text style={styles.statLabel}>Status Member</Text>
-        </View>
-        
+
         <View style={styles.statCard}>
           <Text style={styles.statIcon}>📅</Text>
-          <Text style={styles.statValue}>{userData.joinDate}</Text>
+          <Text style={styles.statValue}>{formattedJoinDate}</Text>
           <Text style={styles.statLabel}>Bergabung</Text>
         </View>
       </View>
@@ -112,13 +131,15 @@ export default function ProfileScreen() {
               <Text style={styles.settingIcon}>🔔</Text>
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>Notifikasi</Text>
-                <Text style={styles.settingDescription}>Atur notifikasi cuaca</Text>
+                <Text style={styles.settingDescription}>
+                  Atur notifikasi cuaca
+                </Text>
               </View>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#E0E0E0', true: '#2196F3' }}
+              trackColor={{ false: "#E0E0E0", true: "#2196F3" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -128,13 +149,15 @@ export default function ProfileScreen() {
               <Text style={styles.settingIcon}>🗺️</Text>
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>Lokasi Otomatis</Text>
-                <Text style={styles.settingDescription}>Gunakan lokasi saat ini</Text>
+                <Text style={styles.settingDescription}>
+                  Gunakan lokasi saat ini
+                </Text>
               </View>
             </View>
             <Switch
               value={locationEnabled}
               onValueChange={setLocationEnabled}
-              trackColor={{ false: '#E0E0E0', true: '#2196F3' }}
+              trackColor={{ false: "#E0E0E0", true: "#2196F3" }}
               thumbColor="#FFFFFF"
             />
           </View>
@@ -142,12 +165,9 @@ export default function ProfileScreen() {
       </View>
 
       {/* Logout Button */}
-      <TouchableOpacity 
-        style={styles.logoutButton}
-        onPress={handleLogout}
-      >
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <LinearGradient
-          colors={['#FF6B6B', '#F44336']}
+          colors={["#FF6B6B", "#F44336"]}
           style={styles.logoutGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -168,7 +188,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   profileHeader: {
     paddingHorizontal: 20,
@@ -178,21 +198,21 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
     top: 60,
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   backIcon: {
     fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   profileInfo: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   avatarContainer: {
     marginBottom: 20,
@@ -201,9 +221,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -211,33 +231,33 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 36,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    fontWeight: "bold",
+    color: "#2196F3",
   },
   userName: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 8,
   },
   userEmail: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
+    color: "rgba(255,255,255,0.9)",
   },
   statsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: -20,
     paddingHorizontal: 20,
     marginBottom: 25,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 15,
     padding: 15,
     marginHorizontal: 5,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -249,14 +269,14 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    fontWeight: "bold",
+    color: "#2196F3",
     marginBottom: 5,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
   },
   section: {
     paddingHorizontal: 20,
@@ -264,32 +284,32 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 15,
     marginLeft: 5,
   },
   settingsCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
   },
   settingItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   settingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   settingIcon: {
@@ -301,29 +321,29 @@ const styles = StyleSheet.create({
   },
   settingTitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
     marginBottom: 4,
   },
   settingDescription: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
   },
   logoutButton: {
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginHorizontal: 20,
     marginBottom: 25,
-    shadowColor: '#F44336',
+    shadowColor: "#F44336",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
   logoutGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 18,
   },
   logoutIcon: {
@@ -331,17 +351,17 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   logoutText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 0.5,
   },
   versionContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingBottom: 30,
   },
   versionText: {
     fontSize: 14,
-    color: '#999',
+    color: "#999",
   },
 });

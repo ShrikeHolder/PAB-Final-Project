@@ -1,63 +1,70 @@
 // services/authService.js
-import { 
+import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
-} from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../firebaseConfig";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Register user dengan email dan password
  */
 export const registerUser = async (email, password, displayName) => {
   try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
     // Update profile dengan display name
     await updateProfile(userCredential.user, {
-      displayName: displayName
+      displayName: displayName,
     });
 
     // Simpan user data ke AsyncStorage
-    await AsyncStorage.setItem('userData', JSON.stringify({
-      uid: userCredential.user.uid,
-      email: userCredential.user.email,
-      displayName: displayName,
-      createdAt: new Date().toISOString()
-    }));
-    
+    await AsyncStorage.setItem(
+      "userData",
+      JSON.stringify({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: displayName,
+        createdAt: new Date().toISOString(),
+      })
+    );
+
     return {
       success: true,
       user: {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
         displayName: displayName,
-        createdAt: new Date().toISOString()
-      }
+        createdAt: new Date().toISOString(),
+      },
     };
   } catch (error) {
-    let errorMessage = 'Terjadi kesalahan saat registrasi';
-    
+    let errorMessage = "Terjadi kesalahan saat registrasi";
+
     switch (error.code) {
-      case 'auth/email-already-in-use':
-        errorMessage = 'Email sudah terdaftar';
+      case "auth/email-already-in-use":
+        errorMessage = "Email sudah terdaftar";
         break;
-      case 'auth/invalid-email':
-        errorMessage = 'Format email tidak valid';
+      case "auth/invalid-email":
+        errorMessage = "Format email tidak valid";
         break;
-      case 'auth/weak-password':
-        errorMessage = 'Password terlalu lemah (minimal 6 karakter)';
+      case "auth/weak-password":
+        errorMessage = "Password terlalu lemah (minimal 6 karakter)";
         break;
       default:
         errorMessage = error.message;
     }
-    
+
     return {
       success: false,
-      error: errorMessage
+      error: errorMessage,
     };
   }
 };
@@ -67,46 +74,53 @@ export const registerUser = async (email, password, displayName) => {
  */
 export const loginUser = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
     // Simpan user data ke AsyncStorage
-    await AsyncStorage.setItem('userData', JSON.stringify({
-      uid: userCredential.user.uid,
-      email: userCredential.user.email,
-      displayName: userCredential.user.displayName
-    }));
-    
+    await AsyncStorage.setItem(
+      "userData",
+      JSON.stringify({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email,
+        displayName: userCredential.user.displayName,
+      })
+    );
+
     return {
       success: true,
       user: {
         uid: userCredential.user.uid,
         email: userCredential.user.email,
-        displayName: userCredential.user.displayName
-      }
+        displayName: userCredential.user.displayName,
+      },
     };
   } catch (error) {
-    let errorMessage = 'Terjadi kesalahan saat login';
-    
+    let errorMessage = "Terjadi kesalahan saat login";
+
     switch (error.code) {
-      case 'auth/user-not-found':
-        errorMessage = 'Email tidak terdaftar';
+      case "auth/user-not-found":
+        errorMessage = "Email tidak terdaftar";
         break;
-      case 'auth/wrong-password':
-        errorMessage = 'Password salah';
+      case "auth/wrong-password":
+        errorMessage = "Password salah";
         break;
-      case 'auth/invalid-email':
-        errorMessage = 'Format email tidak valid';
+      case "auth/invalid-email":
+        errorMessage = "Format email tidak valid";
         break;
-      case 'auth/too-many-requests':
-        errorMessage = 'Terlalu banyak percobaan login. Coba lagi nanti';
+      case "auth/too-many-requests":
+        errorMessage = "Terlalu banyak percobaan login. Coba lagi nanti";
         break;
       default:
         errorMessage = error.message;
     }
-    
+
     return {
       success: false,
-      error: errorMessage
+      error: errorMessage,
     };
   }
 };
@@ -116,13 +130,13 @@ export const loginUser = async (email, password) => {
  */
 export const logoutUser = async () => {
   try {
-    await AsyncStorage.removeItem('userData');
+    await AsyncStorage.removeItem("userData");
     await signOut(auth);
     return { success: true };
   } catch (error) {
     return {
       success: false,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -146,10 +160,35 @@ export const getCurrentUser = () => {
  */
 export const getCachedUser = async () => {
   try {
-    const userData = await AsyncStorage.getItem('userData');
+    const userData = await AsyncStorage.getItem("userData");
     return userData ? JSON.parse(userData) : null;
   } catch (error) {
-    console.error('Error getting cached user:', error);
+    console.error("Error getting cached user:", error);
+    return null;
+  }
+};
+
+/**
+ * Get current user profile (Auth + AsyncStorage)
+ */
+export const getCurrentUserProfile = async () => {
+  try {
+    const user = auth.currentUser;
+
+    if (!user) return null;
+
+    // Ambil cached data (displayName hasil register/login)
+    const cached = await AsyncStorage.getItem("userData");
+    const cachedData = cached ? JSON.parse(cached) : {};
+
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || cachedData.displayName || "User",
+      joinDate: user.metadata.creationTime, // dari Firebase Auth
+    };
+  } catch (error) {
+    console.error("getCurrentUserProfile error:", error);
     return null;
   }
 };

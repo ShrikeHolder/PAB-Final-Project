@@ -1,5 +1,5 @@
 // app/saved.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,34 +10,38 @@ import {
   Alert,
   ActivityIndicator,
   Image,
-  RefreshControl
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { getWeatherIcon } from '../services/weatherService';
-import { getSavedCities, deleteCity, updateCityWeather } from '../services/cityService';
+  RefreshControl,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { getWeatherIcon } from "../services/weatherService";
+import {
+  getSavedCities,
+  deleteCity,
+  updateCityWeather,
+} from "../services/cityService";
 
 export default function SavedScreen() {
   const [savedCities, setSavedCities] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   // Load data kota tersimpan
   const loadSavedCities = async () => {
     setLoading(true);
-    
+
     try {
       const result = await getSavedCities();
-      
+
       if (result.success) {
         setSavedCities(result.cities);
-      } else if (result.error && result.error !== 'User belum login') {
-        Alert.alert('Error', result.error);
+      } else if (result.error && result.error !== "User belum login") {
+        Alert.alert("Error", result.error);
       }
     } catch (error) {
-      console.error('Error loading cities:', error);
-      Alert.alert('Error', 'Gagal memuat data kota tersimpan');
+      console.error("Error loading cities:", error);
+      Alert.alert("Error", "Gagal memuat data kota tersimpan");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -49,48 +53,46 @@ export default function SavedScreen() {
   }, []);
 
   const handleRemoveCity = async (cityId, cityName) => {
-    Alert.alert(
-      'Hapus Kota',
-      `Hapus ${cityName} dari daftar tersimpan?`,
-      [
-        { text: 'Batal', style: 'cancel' },
-        { 
-          text: 'Hapus', 
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteCity(cityId);
-              Alert.alert('Berhasil', 'Kota telah dihapus dari daftar tersimpan');
-              loadSavedCities();
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Gagal menghapus kota');
-            }
+    Alert.alert("Hapus Kota", `Hapus ${cityName} dari daftar tersimpan?`, [
+      { text: "Batal", style: "cancel" },
+      {
+        text: "Hapus",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteCity(cityId);
+            Alert.alert("Berhasil", "Kota telah dihapus dari daftar tersimpan");
+            loadSavedCities();
+          } catch (error) {
+            Alert.alert("Error", error.message || "Gagal menghapus kota");
           }
-        }
-      ]
-    );
+        },
+      },
+    ]);
   };
 
   const handleRefreshCity = async (cityId, cityName) => {
     try {
       const result = await updateCityWeather(cityId);
       if (result.success) {
-        Alert.alert('Berhasil', 'Data cuaca diperbarui');
+        Alert.alert("Berhasil", "Data cuaca diperbarui");
         // Update UI
-        setSavedCities(prev => prev.map(city => 
-          city.id === cityId 
-            ? { 
-                ...city, 
-                ...result.updatedData,
-                lastUpdated: new Date()
-              } 
-            : city
-        ));
+        setSavedCities((prev) =>
+          prev.map((city) =>
+            city.id === cityId
+              ? {
+                  ...city,
+                  ...result.updatedData,
+                  lastUpdated: new Date(),
+                }
+              : city
+          )
+        );
       } else {
-        Alert.alert('Error', result.error);
+        Alert.alert("Error", result.error);
       }
     } catch (error) {
-      Alert.alert('Error', error.message || 'Gagal memperbarui data');
+      Alert.alert("Error", error.message || "Gagal memperbarui data");
     }
   };
 
@@ -99,9 +101,11 @@ export default function SavedScreen() {
     loadSavedCities();
   };
 
-  const filteredCities = savedCities.filter(city =>
-    city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (city.country && city.country.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredCities = savedCities.filter(
+    (city) =>
+      city.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (city.country &&
+        city.country.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Tampilkan loading
@@ -115,29 +119,27 @@ export default function SavedScreen() {
   }
 
   return (
-    <ScrollView 
-      style={styles.container} 
+    <ScrollView
+      style={styles.container}
       showsVerticalScrollIndicator={false}
       refreshControl={
-        <RefreshControl 
-          refreshing={refreshing} 
+        <RefreshControl
+          refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={['#2196F3']}
+          colors={["#2196F3"]}
           tintColor="#2196F3"
         />
       }
     >
       {/* Header */}
-      <LinearGradient
-        colors={['#2196F3', '#1976D2']}
-        style={styles.header}
-      >
-        <TouchableOpacity 
+      <LinearGradient colors={["#2196F3", "#1976D2"]} style={styles.header}>
+        {/* <TouchableOpacity 
           style={styles.backButton}
           onPress={() => router.back()}
         >
           <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+
         <Text style={styles.headerTitle}>Kota Tersimpan</Text>
         <Text style={styles.headerSubtitle}>
           {savedCities.length} kota dalam daftar
@@ -162,13 +164,14 @@ export default function SavedScreen() {
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🏙️</Text>
             <Text style={styles.emptyTitle}>
-              {searchQuery ? 'Kota Tidak Ditemukan' : 'Tidak Ada Kota Tersimpan'}
+              {searchQuery
+                ? "Kota Tidak Ditemukan"
+                : "Tidak Ada Kota Tersimpan"}
             </Text>
             <Text style={styles.emptyText}>
-              {searchQuery 
-                ? 'Coba cari dengan nama kota lain' 
-                : 'Simpan kota favorit Anda dari halaman beranda'
-              }
+              {searchQuery
+                ? "Coba cari dengan nama kota lain"
+                : "Simpan kota favorit Anda dari halaman beranda"}
             </Text>
           </View>
         ) : (
@@ -178,12 +181,12 @@ export default function SavedScreen() {
                 <View style={styles.cityInfo}>
                   <Text style={styles.cityName}>{city.name}</Text>
                   <Text style={styles.cityCountry}>
-                    {city.country || 'Indonesia'}
+                    {city.country || "Indonesia"}
                   </Text>
                 </View>
                 <View style={styles.temperatureBadge}>
                   <Text style={styles.temperatureText}>
-                    {city.temperature || '--'}°
+                    {city.temperature || "--"}°
                   </Text>
                 </View>
               </View>
@@ -199,46 +202,53 @@ export default function SavedScreen() {
                     <Text style={styles.weatherIcon}>☀️</Text>
                   )}
                   <Text style={styles.weatherDescription}>
-                    {city.description || '--'}
+                    {city.description || "--"}
                   </Text>
                 </View>
-                
+
                 <View style={styles.weatherDetails}>
                   <View style={styles.weatherDetail}>
                     <Text style={styles.detailIcon}>💧</Text>
-                    <Text style={styles.detailText}>{city.humidity || '--'}%</Text>
+                    <Text style={styles.detailText}>
+                      {city.humidity || "--"}%
+                    </Text>
                   </View>
                   <View style={styles.weatherDetail}>
                     <Text style={styles.detailIcon}>💨</Text>
-                    <Text style={styles.detailText}>{city.windSpeed || '--'} m/s</Text>
+                    <Text style={styles.detailText}>
+                      {city.windSpeed || "--"} m/s
+                    </Text>
                   </View>
                 </View>
               </View>
 
               <View style={styles.cityFooter}>
                 <Text style={styles.lastUpdated}>
-                  {city.lastUpdated 
-                    ? `Diperbarui: ${new Date(city.lastUpdated).toLocaleTimeString('id-ID', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
+                  {city.lastUpdated
+                    ? `Diperbarui: ${new Date(
+                        city.lastUpdated
+                      ).toLocaleTimeString("id-ID", {
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}`
-                    : '--:--'
-                  }
+                    : "--:--"}
                 </Text>
                 <View style={styles.actionButtons}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.actionButton}
                     onPress={() => handleRefreshCity(city.id, city.name)}
                   >
                     <Text style={styles.actionIcon}>🔄</Text>
                     <Text style={styles.actionText}>Refresh</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={[styles.actionButton, styles.removeButton]}
                     onPress={() => handleRemoveCity(city.id, city.name)}
                   >
                     <Text style={styles.actionIcon}>🗑️</Text>
-                    <Text style={[styles.actionText, styles.removeText]}>Hapus</Text>
+                    <Text style={[styles.actionText, styles.removeText]}>
+                      Hapus
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -248,9 +258,9 @@ export default function SavedScreen() {
       </View>
 
       {/* Add More Cities */}
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.addMoreCard}
-        onPress={() => router.push('/home')}
+        onPress={() => router.push("/home")}
       >
         <Text style={styles.addMoreIcon}>➕</Text>
         <View style={styles.addMoreInfo}>
@@ -268,17 +278,17 @@ export default function SavedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
   },
   loadingText: {
     marginTop: 10,
-    color: '#666',
+    color: "#666",
     fontSize: 14,
   },
   header: {
@@ -289,63 +299,63 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 30,
   },
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     left: 20,
     top: 60,
     width: 40,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   backIcon: {
     fontSize: 24,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   headerSubtitle: {
     fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
+    color: "rgba(255,255,255,0.9)",
+    textAlign: "center",
   },
   searchContainer: {
-    position: 'relative',
+    position: "relative",
     margin: 20,
   },
   searchInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     paddingHorizontal: 45,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     borderWidth: 1,
-    borderColor: '#E9ECEF',
-    shadowColor: '#000',
+    borderColor: "#E9ECEF",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
     elevation: 3,
   },
   searchIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 15,
     top: 14,
     fontSize: 18,
-    color: '#999',
+    color: "#999",
   },
   citiesContainer: {
     paddingHorizontal: 20,
     marginBottom: 30,
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 60,
     paddingHorizontal: 40,
   },
@@ -356,32 +366,32 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#666',
+    fontWeight: "bold",
+    color: "#666",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
     lineHeight: 20,
   },
   cityCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 20,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
   },
   cityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
   },
   cityInfo: {
@@ -389,37 +399,37 @@ const styles = StyleSheet.create({
   },
   cityName: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 4,
   },
   cityCountry: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   temperatureBadge: {
-    backgroundColor: '#F8F9FA',
+    backgroundColor: "#F8F9FA",
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   temperatureText: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2196F3',
+    fontWeight: "bold",
+    color: "#2196F3",
   },
   weatherInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   weatherIconContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   weatherImage: {
     width: 40,
@@ -432,15 +442,15 @@ const styles = StyleSheet.create({
   },
   weatherDescription: {
     fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-    textTransform: 'capitalize',
+    color: "#666",
+    fontWeight: "500",
+    textTransform: "capitalize",
   },
   weatherDetails: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   weatherDetail: {
-    alignItems: 'center',
+    alignItems: "center",
     marginLeft: 20,
   },
   detailIcon: {
@@ -449,31 +459,31 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   cityFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   lastUpdated: {
     fontSize: 12,
-    color: '#999',
+    color: "#999",
   },
   actionButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginLeft: 10,
   },
   removeButton: {
-    backgroundColor: '#FFEBEE',
+    backgroundColor: "#FFEBEE",
   },
   actionIcon: {
     fontSize: 14,
@@ -481,21 +491,21 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
-    color: '#2196F3',
-    fontWeight: '500',
+    color: "#2196F3",
+    fontWeight: "500",
   },
   removeText: {
-    color: '#F44336',
+    color: "#F44336",
   },
   addMoreCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
     marginHorizontal: 20,
     marginBottom: 30,
     borderRadius: 20,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -504,23 +514,23 @@ const styles = StyleSheet.create({
   addMoreIcon: {
     fontSize: 28,
     marginRight: 15,
-    color: '#2196F3',
+    color: "#2196F3",
   },
   addMoreInfo: {
     flex: 1,
   },
   addMoreTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 4,
   },
   addMoreText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   addMoreArrow: {
     fontSize: 24,
-    color: '#999',
+    color: "#999",
   },
 });
