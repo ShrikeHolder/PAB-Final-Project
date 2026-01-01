@@ -2,7 +2,7 @@
   "expo": {
     "name": "final-project",
     "slug": "final-project",
-	"scheme": "news-app",
+    "scheme": "news-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -18,13 +18,20 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.neo_z.finalproject"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "420f33ce-6127-4055-9780-184f4c88203f"
+      }
+    },
+    "owner": "neo_z"
   }
 }
