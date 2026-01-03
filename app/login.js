@@ -1,254 +1,196 @@
 // app/login.js
-import React, { useState } from 'react';
+
+import React, { useState } from "react";
 import {
-  View,
+  Box,
   Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+  Input,
+  InputField,
+  Pressable,
+  Spinner,
+} from "@gluestack-ui/themed";
+import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ScrollView
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
-import { loginUser } from '../services/authService';
+  ScrollView,
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+
+// Services
+import { loginUser } from "../services/authService";
+
+// Icons
+import EyeOpen from "../assets/eye-open.svg";
+import EyeClose from "../assets/eye-close.svg";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Harap isi email dan password');
+      Alert.alert("Error", "Harap isi email dan password");
       return;
     }
 
     setLoading(true);
-    
     try {
       const result = await loginUser(email, password);
-      
       if (result.success) {
-        Alert.alert('Berhasil', 'Login berhasil!');
-        router.replace('/home');
+        Alert.alert("Berhasil", "Login berhasil!");
+        router.replace("/(tabs)/home");
       } else {
-        Alert.alert('Error', result.error);
+        Alert.alert("Error", result.error);
       }
-    } catch (error) {
-      Alert.alert('Error', 'Terjadi kesalahan saat login');
+    } catch {
+      Alert.alert("Error", "Terjadi kesalahan saat login");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <LinearGradient
-      colors={['#E3F2FD', '#FFFFFF']}
-      style={styles.container}
-    >
+    <LinearGradient colors={["#E3F2FD", "#FFFFFF"]} style={{ flex: 1 }}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <View style={styles.logoContainer}>
+          <Box px="$5">
+            {/* Header */}
+            <Box alignItems="center" mb="$10">
               <LinearGradient
-                colors={['#2196F3', '#1976D2']}
-                style={styles.logoGradient}
+                colors={["#2196F3", "#1976D2"]}
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
               >
-                <Text style={styles.logoIcon}>🌤️</Text>
+                <Text fontSize="$5xl">🌤️</Text>
               </LinearGradient>
-            </View>
-            
-            <Text style={styles.title}>Selamat Datang</Text>
-            <Text style={styles.subtitle}>Masuk ke akun Anda</Text>
-          </View>
 
-          <View style={styles.formContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#999"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#999"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!showPassword}
-              />
-              <TouchableOpacity
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
+              <Text
+                fontSize="$3xl"
+                fontWeight="$bold"
+                color="$primary600"
+                mt="$5"
               >
-                <Text style={styles.eyeIcon}>
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+                Selamat Datang
+              </Text>
+              <Text color="$coolGray500" mt="$1">
+                Masuk ke akun Anda
+              </Text>
+            </Box>
 
-            <TouchableOpacity
-              style={[styles.loginButton, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-              activeOpacity={0.8}
+            {/* Form */}
+            <Box
+              bg="$white"
+              p="$6"
+              rounded="$2xl"
+              borderWidth={1}
+              borderColor="$coolGray200"
             >
-              <LinearGradient
-                colors={['#2196F3', '#1976D2']}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              {/* Email */}
+              <Input
+                bg="$coolGray100"
+                rounded="$lg"
+                borderColor="$coolGray200"
+                mb="$5"
               >
-                <Text style={styles.buttonText}>
-                  {loading ? 'MEMUAT...' : 'MASUK'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <InputField
+                  placeholder="Email"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </Input>
 
-            <View style={styles.registerContainer}>
-              <Text style={styles.registerText}>Belum punya akun? </Text>
-              <TouchableOpacity onPress={() => router.push('/register')}>
-                <Text style={styles.registerLink}>Daftar Sekarang</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+              {/* Password */}
+              <Box position="relative" mb="$6">
+                <Input
+                  bg="$coolGray100"
+                  rounded="$lg"
+                  borderColor="$coolGray200"
+                >
+                  <InputField
+                    placeholder="Password"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                </Input>
+
+                <Pressable
+                  position="absolute"
+                  right="$3"
+                  top="50%"
+                  onPress={() => setShowPassword(!showPassword)}
+                  style={{ transform: [{ translateY: -12 }] }}
+                >
+                  {showPassword ? (
+                    <EyeOpen width={22} height={22} />
+                  ) : (
+                    <EyeClose width={22} height={22} />
+                  )}
+                </Pressable>
+              </Box>
+
+              {/* Login Button */}
+              <Pressable
+                onPress={handleLogin}
+                disabled={loading}
+                opacity={loading ? 0.6 : 1}
+              >
+                <LinearGradient
+                  colors={["#2196F3", "#1976D2"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={{
+                    height: 56,
+                    borderRadius: 12,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {loading ? (
+                    <Spinner color="$white" />
+                  ) : (
+                    <Text color="$white" fontWeight="$bold">
+                      MASUK
+                    </Text>
+                  )}
+                </LinearGradient>
+              </Pressable>
+
+              {/* Register */}
+              <Box
+                flexDirection="row"
+                justifyContent="center"
+                alignItems="center"
+                mt="$6"
+              >
+                <Text color="$coolGray500">Belum punya akun? </Text>
+                <Pressable onPress={() => router.push("/register")}>
+                  <Text color="$primary600" fontWeight="$bold">
+                    Daftar Sekarang
+                  </Text>
+                </Pressable>
+              </Box>
+            </Box>
+          </Box>
         </ScrollView>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 50,
-  },
-  logoContainer: {
-    marginBottom: 20,
-  },
-  logoGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  logoIcon: {
-    fontSize: 48,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-  },
-  formContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  input: {
-    height: 52,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-    marginBottom: 20,
-  },
-  passwordContainer: {
-    position: 'relative',
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    height: 52,
-    width: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  eyeIcon: {
-    fontSize: 20,
-  },
-  loginButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 24,
-    shadowColor: '#2196F3',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonGradient: {
-    height: 56,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-  },
-  registerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  registerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  registerLink: {
-    color: '#2196F3',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-});

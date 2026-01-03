@@ -1,306 +1,215 @@
 // app/search.js
+
 import React, { useState } from "react";
 import {
-  View,
+  Box,
   Text,
-  TextInput,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
+  Input,
+  InputField,
+  ScrollView,
+  Pressable,
+  Spinner,
   Image,
-  ActivityIndicator,
-  Keyboard,
-} from "react-native";
+  FlatList,
+} from "@gluestack-ui/themed";
+import { Keyboard, Alert } from "react-native";
 import { router } from "expo-router";
-import { getCurrentWeather, getWeatherIcon, getWeatherEmoji } from "../services/weatherService";
+import { getCurrentWeather, getWeatherIcon } from "../services/weatherService";
 
-export default function Search() {
+export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [recentSearches, setRecentSearches] = useState(["Jakarta", "Surabaya", "Bandung"]);
+  const [recentSearches, setRecentSearches] = useState([
+    "Jakarta",
+    "Surabaya",
+    "Bandung",
+  ]);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
+  const handleSearch = async (queryOverride) => {
+    const query = queryOverride ?? searchQuery;
+
+    if (!query.trim()) return;
+
     Keyboard.dismiss();
     setLoading(true);
-    
+
     try {
-      const weatherData = await getCurrentWeather(searchQuery);
-      
+      const weatherData = await getCurrentWeather(query);
+
       if (weatherData && weatherData.cod === 200) {
         setResults([weatherData]);
-        
-        // Add to recent searches (no duplicates)
-        if (!recentSearches.includes(searchQuery)) {
-          setRecentSearches(prev => [searchQuery, ...prev.slice(0, 4)]);
+
+        if (!recentSearches.includes(query)) {
+          setRecentSearches((prev) => [query, ...prev.slice(0, 4)]);
         }
       } else {
         setResults([]);
-        alert(`Kota "${searchQuery}" tidak ditemukan`);
+        Alert.alert("Tidak Ditemukan", `Kota "${query}" tidak ditemukan`);
       }
     } catch (error) {
-      console.error("Search error:", error);
-      alert("Terjadi kesalahan saat mencari");
+      Alert.alert("Error", "Terjadi kesalahan saat mencari kota");
     } finally {
       setLoading(false);
     }
   };
 
   const renderWeatherItem = ({ item }) => (
-    <TouchableOpacity 
-      style={styles.weatherCard}
-      onPress={() => {
+    <Pressable
+      onPress={() =>
         router.push({
           pathname: "/home",
-          params: { city: item.name }
-        });
-      }}
+          params: { city: item.name },
+        })
+      }
     >
-      <View style={styles.weatherHeader}>
-        <View>
-          <Text style={styles.cityName}>{item.name}, {item.sys.country}</Text>
-          <Text style={styles.weatherDesc}>{item.weather[0].description}</Text>
-        </View>
-        <Image
-          source={{ uri: getWeatherIcon(item.weather[0].icon) }}
-          style={styles.weatherIcon}
-        />
-      </View>
-      
-      <View style={styles.weatherDetails}>
-        <Text style={styles.temperature}>{Math.round(item.main.temp)}°C</Text>
-        <View style={styles.stats}>
-          <Text style={styles.stat}>💧 {item.main.humidity}%</Text>
-          <Text style={styles.stat}>🌬️ {item.wind.speed} m/s</Text>
-          <Text style={styles.stat}>📊 {item.main.pressure} hPa</Text>
-        </View>
-      </View>
-      
-      <TouchableOpacity style={styles.saveButton}>
-        <Text style={styles.saveButtonText}>Simpan Kota</Text>
-      </TouchableOpacity>
-    </TouchableOpacity>
+      <Box bg="$white" rounded="$2xl" p="$5" mb="$4" shadow="$3">
+        {/* Header */}
+        <Box
+          flexDirection="row"
+          justifyContent="space-between"
+          alignItems="center"
+          mb="$3"
+        >
+          <Box>
+            <Text fontSize="$lg" fontWeight="$bold">
+              {item.name}, {item.sys.country}
+            </Text>
+            <Text
+              fontSize="$sm"
+              color="$coolGray500"
+              textTransform="capitalize"
+            >
+              {item.weather[0].description}
+            </Text>
+          </Box>
+
+          <Image
+            source={{ uri: getWeatherIcon(item.weather[0].icon) }}
+            alt="weather"
+            size="lg"
+          />
+        </Box>
+
+        {/* Details */}
+        <Box mb="$3">
+          <Text fontSize="$4xl" fontWeight="$bold">
+            {Math.round(item.main.temp)}°C
+          </Text>
+
+          <Box flexDirection="row" mt="$2">
+            <Text fontSize="$sm" color="$coolGray500" mr="$4">
+              💧 {item.main.humidity}%
+            </Text>
+            <Text fontSize="$sm" color="$coolGray500" mr="$4">
+              🌬️ {item.wind.speed} m/s
+            </Text>
+            <Text fontSize="$sm" color="$coolGray500">
+              📊 {item.main.pressure} hPa
+            </Text>
+          </Box>
+        </Box>
+
+        {/* Save Button */}
+        <Box bg="$primary600" rounded="$lg" py="$2" alignItems="center">
+          <Text color="$white" fontWeight="$bold">
+            Simpan Kota
+          </Text>
+        </Box>
+      </Box>
+    </Pressable>
   );
 
   return (
-    <View style={styles.container}>
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Cari kota (contoh: Jakarta, Surabaya, Bandung)"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
-          returnKeyType="search"
-        />
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={handleSearch}
+    <ScrollView
+      bg="$coolGray100"
+      px="$5"
+      py="$5"
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Search */}
+      <Box flexDirection="row" mb="$5">
+        <Input
+          flex={1}
+          bg="$white"
+          rounded="$xl"
+          borderColor="$coolGray200"
+          mr="$3"
+        >
+          <InputField
+            placeholder="Cari kota (Jakarta, Surabaya, Bandung)"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={() => handleSearch()}
+            returnKeyType="search"
+          />
+        </Input>
+
+        <Pressable
+          bg="$primary600"
+          rounded="$xl"
+          px="$5"
+          justifyContent="center"
+          onPress={() => handleSearch()}
           disabled={loading}
         >
           {loading ? (
-            <ActivityIndicator color="white" size="small" />
+            <Spinner color="$white" />
           ) : (
-            <Text style={styles.searchButtonText}>Cari</Text>
+            <Text color="$white" fontWeight="$bold">
+              Cari
+            </Text>
           )}
-        </TouchableOpacity>
-      </View>
+        </Pressable>
+      </Box>
 
-      {/* Recent Searches */}
+      {/* Searcher Recent */}
       {recentSearches.length > 0 && (
-        <View style={styles.recentSection}>
-          <Text style={styles.sectionTitle}>Pencarian Terakhir</Text>
-          <View style={styles.recentList}>
-            {recentSearches.map((city, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.recentItem}
-                onPress={() => {
-                  setSearchQuery(city);
-                  handleSearch();
-                }}
-              >
-                <Text style={styles.recentCity}>{city}</Text>
-                <Text style={styles.recentArrow}>→</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+        <Box bg="$white" rounded="$2xl" p="$5" mb="$5" shadow="$2">
+          <Text fontWeight="$bold" mb="$3">
+            Pencarian Terakhir
+          </Text>
+
+          {recentSearches.map((city, index) => (
+            <Pressable
+              key={index}
+              bg="$coolGray100"
+              rounded="$lg"
+              px="$4"
+              py="$3"
+              mb="$2"
+              flexDirection="row"
+              justifyContent="space-between"
+              alignItems="center"
+              onPress={() => {
+                setSearchQuery(city);
+                handleSearch(city);
+              }}
+            >
+              <Text fontWeight="$medium">{city}</Text>
+              <Text color="$primary600">→</Text>
+            </Pressable>
+          ))}
+        </Box>
       )}
 
-      {/* Results */}
+      {/* Search Result */}
       <FlatList
         data={results}
         renderItem={renderWeatherItem}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.resultsList}
+        keyExtractor={(_, index) => index.toString()}
+        scrollEnabled={false}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>
+          <Box alignItems="center" py="$10">
+            <Text color="$coolGray500" textAlign="center">
               Cari kota untuk melihat informasi cuaca
             </Text>
-            <Text style={styles.emptyStateSubtext}>
+            <Text color="$coolGray400" textAlign="center" mt="$2">
               Contoh: Jakarta, Surabaya, Bandung, Medan, Bali
             </Text>
-          </View>
+          </Box>
         }
       />
-    </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f8f9fa",
-    padding: 20,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: "white",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    fontSize: 16,
-    marginRight: 10,
-  },
-  searchButton: {
-    backgroundColor: "#1a73e8",
-    paddingHorizontal: 25,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    minWidth: 80,
-  },
-  searchButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  recentSection: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 15,
-  },
-  recentList: {
-    gap: 10,
-  },
-  recentItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 15,
-    backgroundColor: "#f8f9fa",
-    borderRadius: 10,
-  },
-  recentCity: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
-  },
-  recentArrow: {
-    fontSize: 18,
-    color: "#1a73e8",
-  },
-  resultsList: {
-    paddingBottom: 20,
-  },
-  weatherCard: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  weatherHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 15,
-  },
-  cityName: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  weatherDesc: {
-    fontSize: 14,
-    color: "#666",
-    textTransform: "capitalize",
-    marginTop: 2,
-  },
-  weatherIcon: {
-    width: 60,
-    height: 60,
-  },
-  weatherDetails: {
-    marginBottom: 15,
-  },
-  temperature: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 10,
-  },
-  stats: {
-    flexDirection: "row",
-    gap: 15,
-  },
-  stat: {
-    fontSize: 14,
-    color: "#666",
-  },
-  saveButton: {
-    backgroundColor: "#1a73e8",
-    padding: 12,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  saveButtonText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  emptyState: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 60,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  emptyStateSubtext: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
-  },
-});

@@ -1,82 +1,62 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
+// app/splash.js
+
+import React, { useEffect } from "react";
+import { StatusBar } from "react-native";
+import { Box, Text } from "@gluestack-ui/themed";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 
 export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/login');
+      router.replace("/login");
     }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <LinearGradient
-      colors={['#2196F3', '#1976D2']}
-      style={styles.container}
-    >
-      <View style={styles.logoContainer}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoIcon}>🌤️</Text>
-        </View>
-      </View>
-      
-      <View style={styles.textContainer}>
-        <Text style={styles.appName}>ANGIN NUSANTARA</Text>
-        <Text style={styles.tagline}>Prakiraan Cuaca Indonesia</Text>
-      </View>
-      
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Memuat aplikasi...</Text>
-      </View>
+    <LinearGradient colors={["#2196F3", "#1976D2"]} style={{ flex: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor="#2196F3" />
+
+      <Box flex={1} justifyContent="center" alignItems="center">
+        {/* Logo */}
+        <Box alignItems="center" mb="$8">
+          <Box
+            size={120}
+            rounded="$full"
+            bg="$whiteAlpha300"
+            justifyContent="center"
+            alignItems="center"
+            shadow="$4"
+          >
+            <Text fontSize="$6xl">🌤️</Text>
+          </Box>
+        </Box>
+
+        {/* Text */}
+        <Box alignItems="center">
+          <Text
+            fontSize="$4xl"
+            fontWeight="$bold"
+            color="$white"
+            letterSpacing={2}
+            mb="$2"
+          >
+            ANGIN NUSANTARA
+          </Text>
+          <Text fontSize="$md" color="$whiteAlpha900" letterSpacing={1}>
+            Prakiraan Cuaca Indonesia
+          </Text>
+        </Box>
+
+        {/* Loading */}
+        <Box position="absolute" bottom={60}>
+          <Text color="$whiteAlpha800" fontSize="$sm">
+            Memuat aplikasi...
+          </Text>
+        </Box>
+      </Box>
     </LinearGradient>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoIcon: {
-    fontSize: 60,
-  },
-  textContainer: {
-    alignItems: 'center',
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    letterSpacing: 2,
-    marginBottom: 10,
-  },
-  tagline: {
-    fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 1,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    bottom: 50,
-  },
-  loadingText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-  },
-});

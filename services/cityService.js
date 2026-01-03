@@ -242,7 +242,7 @@ const getCityByName = async (userId, cityName) => {
     const q = query(
       citiesRef,
       where("userId", "==", userId),
-      where("cityName", "==", cityName)
+      where("cityName", "==", cityName.trim())
     );
 
     const querySnapshot = await getDocs(q);
@@ -257,6 +257,26 @@ const getCityByName = async (userId, cityName) => {
   } catch (error) {
     console.error("Error checking city:", error);
     return null;
+  }
+};
+
+export const isCitySaved = async (cityName) => {
+  try {
+    const user = auth.currentUser;
+    if (!user) return false;
+
+    const citiesRef = collection(db, "savedCities");
+    const q = query(
+      citiesRef,
+      where("userId", "==", user.uid),
+      where("cityName", "==", cityName.trim())
+    );
+
+    const snapshot = await getDocs(q);
+    return !snapshot.empty;
+  } catch (error) {
+    console.error("isCitySaved error:", error);
+    return false;
   }
 };
 
